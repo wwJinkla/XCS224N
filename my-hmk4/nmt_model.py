@@ -366,7 +366,7 @@ class NMT(nn.Module):
         alpha_t = F.softmax(e_t, dim=1) # shape (b, src_len)
         # (b, 1, src_len) .bmm(b, src_len, 2h) -> (b, 1, 2h) -> (b, 2h)
         a_t = torch.squeeze(torch.unsqueeze(alpha_t, dim=1).bmm(enc_hiddens), dim=1) 
-        U_t = torch.cat((dec_hidden, a_t), dim=1)
+        U_t = torch.cat((a_t, dec_hidden), dim=1)
         V_t = self.combined_output_projection(U_t)
         O_t = self.dropout(torch.tanh(V_t))
         ### END YOUR CODE
