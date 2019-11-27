@@ -7,6 +7,8 @@ sanity_check.py: sanity checks for assignment 5
 Usage:
     sanity_check.py 1a
     sanity_check.py 1b
+    sanity_check.py 1d
+    sanity_check.py 1e
     sanity_check.py 1f
     sanity_check.py 2a
     sanity_check.py 2b
@@ -31,9 +33,15 @@ from vocab import Vocab, VocabEntry
 # CONSTANTS
 # ----------
 BATCH_SIZE = 5
-EMBED_SIZE = 3
+EMBED_SIZE = 3 # I (Wei) use this as word embedding size
 HIDDEN_SIZE = 3
 DROPOUT_RATE = 0.0
+
+# Wei's code starts
+from highway import Highway
+from cnn import CNN
+CHAR_EMBED_SIZE = 2
+# Wei's code ends
 
 
 class DummyVocab():
@@ -98,6 +106,44 @@ def question_1b_sanity_check():
         gold_padded_sentences, padded_sentences)
 
     print("Sanity Check Passed for Question 1b: Padding!")
+    print("-" * 80)
+
+
+def question_1d_sanity_check(highway):
+    """ Sanity check for highway.py
+        basic shape check
+        Added by Wei Wu
+    """
+    print("-" * 80)
+    print("Running Sanity Check for Question 1d: Highway Network")
+    print("-" * 80)
+    # inpt = torch.zeros(BATCH_SIZE, EMBED_SIZE, dtype=torch.long) # TODO: does not work for torch.long. Why?
+    inpt = torch.zeros(BATCH_SIZE, EMBED_SIZE)
+    output = highway.forward(inpt)
+    output_expected_size = [BATCH_SIZE, EMBED_SIZE]
+    assert (list(
+        output.size()) == output_expected_size), "output shape is incorrect: it should be:\n {} but is:\n{}".format(
+        output_expected_size, list(output.size()))
+    print("Sanity Check Passed for Question 1d: Highway Network!")
+    print("-" * 80)
+
+
+def question_1e_sanity_check(CNN):
+    """ Sanity check for cnn.py
+        basic shape check
+        Added by Wei Wu
+    """
+    print("-" * 80)
+    print("Running Sanity Check for Question 1e: CNN")
+    print("-" * 80)
+    max_word_length = 21
+    inpt = torch.zeros(BATCH_SIZE, CHAR_EMBED_SIZE, max_word_length)
+    output = CNN.forward(inpt)
+    output_expected_size = [BATCH_SIZE, EMBED_SIZE]
+    assert (list(
+        output.size()) == output_expected_size), "output shape is incorrect: it should be:\n {} but is:\n{}".format(
+        output_expected_size, list(output.size()))
+    print("Sanity Check Passed for Question 1e: CNN!")
     print("-" * 80)
 
 
@@ -234,6 +280,12 @@ def main():
         dropout_rate=DROPOUT_RATE,
         vocab=vocab)
 
+    # Create Highway Network    
+    highway = Highway(EMBED_SIZE)
+
+    # Create CNN
+    cnn = CNN(CHAR_EMBED_SIZE, EMBED_SIZE, 21)
+
     char_vocab = DummyVocab()
 
     # Initialize CharDecoder
@@ -246,10 +298,14 @@ def main():
         question_1a_sanity_check()
     elif args['1b']:
         question_1b_sanity_check()
+    elif args['1d']: # my sanity check
+        question_1d_sanity_check(highway)
+    elif args['1e']: # my sanity check
+        question_1e_sanity_check(cnn)
     elif args['1f']:
         question_1f_sanity_check(model)
     elif args['2a']:
-        question_2a_sanity_check(decoder, char_vocab)
+        question_2a_sanity_check(decoder, char_vocab)   
     elif args['2b']:
         question_2b_sanity_check(decoder, char_vocab)
     elif args['2c']:

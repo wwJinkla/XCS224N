@@ -123,7 +123,12 @@ class VocabEntry(object):
         ###     You must prepend each word with the `start_of_word` character and append 
         ###     with the `end_of_word` character. 
 
-
+        return [[
+                [self.start_of_word] + 
+                [self.char2id[c] for c in w] +
+                [self.end_of_word]
+                    for w in s] 
+                        for s in sents]
         ### END YOUR CODE
 
     def words2indices(self, sents):
@@ -153,7 +158,14 @@ class VocabEntry(object):
         ### TODO: 
         ###     Connect `words2charindices()` and `pad_sents_char()` which you've defined in 
         ###     previous parts
-        
+
+        char_ids = self.words2charindices(sents)
+        sents_t = pad_sents_char(char_ids, self.char2id['<pad>'])
+        sents_var = torch.tensor(sents_t, dtype=torch.long, device=device)
+        return sents_var.permute(1,0,2).contiguous()     
+        # NOTE: if not contiguous, this cuases an issue downstream when using view. See here for contiguous
+        # https://stackoverflow.com/questions/48915810/pytorch-contiguous    
+        # Seems that reshape is more robust than view and does not require tensor to be contiguous
 
         ### END YOUR CODE
 

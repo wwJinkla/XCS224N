@@ -17,6 +17,7 @@ Hypothesis = namedtuple('Hypothesis', ['value', 'score'])
 
 import random
 
+
 class NMT(nn.Module):
     """ Simple Neural Machine Translation Model:
         - Bidrectional LSTM Encoder
@@ -90,6 +91,14 @@ class NMT(nn.Module):
         ###     - Add `target_padded_chars` for character level padded encodings for target
         ###     - Modify calls to encode() and decode() to use the character level encodings
 
+        target_padded = self.vocab.tgt.to_input_tensor(target, device=self.device)   # Tensor: (tgt_len, b)
+
+        source_padded_chars = self.vocab.src.to_input_tensor_char(source, device=self.device)
+        target_padded_chars = self.vocab.tgt.to_input_tensor_char(target, device=self.device)
+
+        enc_hiddens, dec_init_state = self.encode(source_padded_chars, source_lengths)
+        enc_masks = self.generate_sent_masks(enc_hiddens, source_lengths)
+        combined_outputs = self.decode(enc_hiddens, enc_masks, dec_init_state, target_padded_chars)
  
         ### END YOUR CODE
 
@@ -221,7 +230,8 @@ class NMT(nn.Module):
 
         # Set e_t to -inf where enc_masks has 1
         if enc_masks is not None:
-            e_t.data.masked_fill_(enc_masks.byte(), -float('inf'))
+            # e_t.data.masked_fill_(enc_masks.byte(), -float('inf'))
+            e_t.data.masked_fill_(enc_masks.bool(), -float('inf')) # replace above to avoid deprecated warning for pytorch >= 1.3.0
 
         alpha_t = F.softmax(e_t, dim=-1)
         alpha_t_view = (alpha_t.size(0), 1, alpha_t.size(1))
